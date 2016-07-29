@@ -189,7 +189,8 @@ void TrackerListener::dateValue(long long value) {
 }
 
 void TrackerListener::dateTimeValue(long long value) {
-  struct tm* t =  localtime((time_t *) &value);
+  long long value_in_sec = (long long) value/1000;
+  struct tm* t =  localtime((time_t *) &value_in_sec);
   PyObject* val = PyDateTime_FromDateAndTime(t->tm_year, t->tm_mon, t->tm_mday,
                                          t->tm_hour, t->tm_min, t->tm_sec, (int)(value % 1000));
   switch(this->types_stack.top()){
