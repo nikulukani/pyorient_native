@@ -176,7 +176,8 @@ void TrackerListener::binaryValue(const char * value, int length) {
 }
 
 void TrackerListener::dateValue(long long value) {
-  struct tm* t = gmtime((time_t *) &value);
+  long long val_in_sec = (long long) (value/1000);
+  struct tm* t = gmtime((time_t *) &val_in_sec);
   PyObject* val = PyDate_FromDate(t->tm_year, t->tm_mon, t->tm_mday);
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
