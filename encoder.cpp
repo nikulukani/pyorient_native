@@ -213,12 +213,6 @@ void PyRecWriter::write_value(PyObject *pyval){
   else if(strcmp(cls, "OrientRecordLink")==0){
     write_link(pyval);
   }
-  else if(strcmp(cls, "OrientBinaryObject")==0){
-    PyObject* obj = PyByteArray_FromObject(PyObject_GetAttrString(
-                                           pyval,"b64"));
-    this->writer->binaryValue((const char *)PyByteArray_AsString(obj),
-                             (int) PyByteArray_Size(obj));
-  }
   else if(strcmp(cls, "datetime")==0){
     write_datetime(pyval);
   }
