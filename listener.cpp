@@ -3,9 +3,9 @@
 #include "listener.h"
 #include <iostream>
 #include <stack>
-#include <time.h>
-#include <math.h>
-#include <datetime.h>
+#include "time.h"
+#include "math.h"
+#include "datetime.h"
 using namespace Orient;
 using namespace std;
 
@@ -178,7 +178,7 @@ void TrackerListener::binaryValue(const char * value, int length) {
 void TrackerListener::dateValue(long long value) {
   long long val_in_sec = (long long) (value/1000);
   struct tm* t = gmtime((time_t *) &val_in_sec);
-  PyObject* val = PyDate_FromDate(t->tm_year, t->tm_mon, t->tm_mday);
+  PyObject* val = PyDate_FromDate(t->tm_year+1900, t->tm_mon+1, t->tm_mday);
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
@@ -190,10 +190,10 @@ void TrackerListener::dateValue(long long value) {
 }
 
 void TrackerListener::dateTimeValue(long long value) {
-  long long value_in_sec = (long long) value/1000;
-  struct tm* t =  localtime((time_t *) &value_in_sec);
-  PyObject* val = PyDateTime_FromDateAndTime(t->tm_year, t->tm_mon, t->tm_mday,
-                                         t->tm_hour, t->tm_min, t->tm_sec, (int)(value % 1000));
+  long long val_in_sec = (long long) (value/1000);
+  struct tm* t =  localtime((time_t *) &val_in_sec);
+  PyObject* val = PyDateTime_FromDateAndTime(t->tm_year+1900, t->tm_mon+1, t->tm_mday,
+                                         t->tm_hour, t->tm_min, t->tm_sec, (int)(value % 1000)*1000);
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
@@ -253,7 +253,7 @@ void TrackerListener::mapKey(const char *key,size_t key_size) {
 }
 
 void TrackerListener::ridBagTreeKey(long long fileId,long long pageIndex,long pageOffset) {
-  cout << "Warning: ridBagTreeKey not Implemented " << endl;
+  //cout << "Warning: ridBagTreeKey not Implemented " << endl;
 }
 
 void TrackerListener::nullValue() {
@@ -284,6 +284,7 @@ TrackerListener::TrackerListener(PyObject* props) {
   this->types_stack.push(EMBEDDEDLIST);
   this->obj_stack.push(this->obj);
   this->props = props;
+  PyDateTime_IMPORT;
 }
 
 TrackerListener::~TrackerListener() {

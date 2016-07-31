@@ -3,6 +3,7 @@
 #include "helpers.h"
 #include "parse_exception.h"
 #include "pendian.h"
+#include <sstream>
 
 using namespace std;
 
@@ -69,6 +70,11 @@ void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
           int prop_ind = (size * -1) - 1;
           
           PyObject * name_type = PyDict_GetItem(listener.props, PyInt_FromLong(prop_ind));
+          if (name_type==NULL){
+            stringstream msg;
+            msg << "Could not retrieve property from global properties for id " << prop_ind << endl;
+            throw new parse_exception(msg.str());
+          }
           PyObject * pyname = PyList_GetItem(name_type, 0);
           char * name =  PyString_AsString(pyname);
           int size = PyString_Size(pyname);
@@ -78,15 +84,14 @@ void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
           if (position == 0) {
                 listener.startField((const char *)name, size, ANY);
 				listener.nullValue();
-			} else {
+		  } else {
 				listener.startField((const char *) name, size, type);
 				int temp = reader.prepared;
 				reader.force_cursor(position);
 				readSimpleValue(reader, type, listener);
 				lastCursor = reader.prepared;
 				reader.force_cursor(temp);
-			}
-          
+		  }
 		}
 	}
 	listener.endDocument();

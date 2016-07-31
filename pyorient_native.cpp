@@ -1,6 +1,8 @@
 #include "Python.h"
 #include "orientc.h"
 #include "listener.h"
+#include "encoder.h"
+
 #include <iostream>
 using namespace Orient;
 using namespace std;
@@ -21,8 +23,24 @@ native_deserialize(PyObject *self, PyObject *args){
   return listener->obj;
 }
 
+static PyObject* native_serialize(PyObject* self, PyObject *args){
+  PyObject *pyrec;
+  int size;
+  const char *content;
+  PyArg_ParseTuple(args, "O", &pyrec);
+
+  PyRecWriter writer;
+  content = (const char *) writer.serialize(pyrec, &size);
+
+  cout << content << endl << flush;
+  return PyString_FromStringAndSize(content, size);
+}
+
+
+
 static PyMethodDef native_methods[] = {
   {"deserialize", native_deserialize, METH_VARARGS, ""},
+  {"serialize", native_serialize, METH_VARARGS, ""},
   {NULL, NULL,0, NULL}
 };
 
