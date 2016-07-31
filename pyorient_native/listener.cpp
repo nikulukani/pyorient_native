@@ -9,6 +9,11 @@
 using namespace Orient;
 using namespace std;
 
+#if PY_MAJOR_VERSION >= 3
+    #define PyInt_FromLong PyLong_FromLong
+    #define PyString_FromStringAndSize PyUnicode_FromStringAndSize
+#endif
+
 void TrackerListener::startDocument(const char * name,size_t name_length) {
   PyObject *cur = this->obj_stack.top();
   OType cur_type = this->types_stack.top();
@@ -95,7 +100,11 @@ void TrackerListener::shortValue(short value) {
 }
 
 void TrackerListener::byteValue(char value) {
+  #if PY_MAJOR_VERSION >= 3
+  PyObject* val = PyBytes_FromFormat("%c",value);
+  #else
   PyObject* val = PyString_FromFormat("%c",value);
+  #endif
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
@@ -164,7 +173,11 @@ void TrackerListener::decimalValue(int scale , const char * bytes, int bytes_len
   }
 
 void TrackerListener::binaryValue(const char * value, int length) {
+  #if PY_MAJOR_VERSION >= 3
+  PyObject* val = PyBytes_FromStringAndSize(value, length);
+  #else
   PyObject* val = PyString_FromStringAndSize(value, length);
+  #endif
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);

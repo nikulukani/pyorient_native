@@ -10,6 +10,13 @@
 using namespace Orient;
 using namespace std;
 
+#if PY_MAJOR_VERSION >= 3
+    #define PyInt_AsLong PyLong_AsLong
+    #define PyInt_Check PyLong_Check
+    #define PyString_AsString PyUnicode_AsString
+    #define PyString_Check PyUnicode_Check
+#endif
+
 const unsigned char* PyRecWriter::serialize(PyObject* pyrec, int *size){
   write_record(pyrec);
   return this->writer->writtenContent(size);
