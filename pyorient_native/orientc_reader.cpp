@@ -5,6 +5,22 @@
 #include "pendian.h"
 #include <sstream>
 
+
+#if PY_MAJOR_VERSION >= 3
+char* PyString_AsString(PyObject* obj){
+  if(obj==NULL)
+    return "";
+  if (PyUnicode_Check(obj)) {
+    PyObject * byte_obj = PyUnicode_AsEncodedString(obj, "ASCII", "strict");
+    return PyBytes_AsString(byte_obj);
+  } else if (PyBytes_Check(obj)) {
+    return PyBytes_AsString(obj);
+  } else {
+    return PyString_AsString(PyObject_Str(obj));
+  }
+}
+#endif
+
 using namespace std;
 
 namespace Orient {
@@ -77,7 +93,7 @@ void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
           }
           PyObject * pyname = PyList_GetItem(name_type, 0);
           char * name =  PyString_AsString(pyname);
-          int size = PyString_Size(pyname);
+          int size = strlen(name);
           OType type = static_cast<OType>(  PyInt_AsLong(PyList_GetItem(name_type, 1)));
           
           int32_t position = readFlat32Integer(reader);
