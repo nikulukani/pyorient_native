@@ -9,6 +9,16 @@
 #define SRC_ORIENTC_READER_H_
 #include "Python.h"
 #include <string>
+
+#if PY_MAJOR_VERSION >= 3
+#define PyInt_FromLong PyLong_FromLong
+#define PyInt_AsLong PyLong_AsLong
+#define PyInt_Check PyLong_Check
+#define PyString_Check PyUnicode_Check
+char* PyString_AsString(PyObject* obj);
+#endif
+
+
 namespace Orient {
 
 enum OType {
