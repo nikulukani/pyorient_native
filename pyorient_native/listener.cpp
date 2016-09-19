@@ -25,9 +25,7 @@ void TrackerListener::startDocument(const char * name,size_t name_length) {
   }
   else{
     if (!PyList_Size(this->obj)){
-      PyObject *temp = Py_None;
-      PyList_Append(this->obj,temp);
-      Py_XDECREF(temp);
+      PyList_Append(this->obj,Py_None);
     }
   }
   switch(cur_type){
@@ -142,11 +140,9 @@ void TrackerListener::booleanValue(bool value) {
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
-      Py_XDECREF(val); 
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
-      Py_XDECREF(val); 
       break;
   }
 }
@@ -312,17 +308,14 @@ void TrackerListener::ridBagTreeKey(long long fileId,long long pageIndex,long pa
 }
 
 void TrackerListener::nullValue() {
-  PyObject* val = Py_None;
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
-      PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), Py_None);
       break;
     default:
-      PyObject* val = Py_None;
-      PyList_Append(this->obj_stack.top(), val);
+      PyList_Append(this->obj_stack.top(), Py_None);
       break;
   }
-  Py_XDECREF(val);
 }
 
 void TrackerListener::endMap(OType type) {
