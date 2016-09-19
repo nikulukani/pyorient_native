@@ -24,7 +24,10 @@ native_deserialize(PyObject *self, PyObject *args){
   #else
   reader.parse((unsigned char*)PyString_AsString(pycontent), len, *listener);
   #endif
-  return listener->obj;
+  PyObject *ret = listener->obj;
+  delete listener;
+  //Py_XDECREF(pycontent);
+  return ret;
 }
 
 static PyObject* native_serialize(PyObject* self, PyObject *args){
@@ -36,7 +39,6 @@ static PyObject* native_serialize(PyObject* self, PyObject *args){
   PyRecWriter writer;
   content = (const char *) writer.serialize(pyrec, &size);
 
-  cout << content << endl << flush;
   #if PY_MAJOR_VERSION >= 3
   return PyBytes_FromStringAndSize(content, size);
   #else

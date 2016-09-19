@@ -53,16 +53,16 @@ void RecordParser::parse(const unsigned char * content, int content_size,
 
 void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
 	int64_t class_size = readVarint(reader);
-	if (class_size > 0) {
+    if (class_size > 0) {
 		reader.prepare(class_size);
 		char * class_name = (char *) reader.content + reader.cursor;
-		listener.startDocument(class_name, class_size);
+        listener.startDocument(class_name, class_size);
 	} else
 		listener.startDocument("", 0);
 	int64_t size = 0;
 	int32_t lastCursor = 0;
 	while ((size = readVarint(reader)) != 0) {
-		if (size > 0) {
+         if (size > 0) {
 			reader.prepare(size);
 			char * field_name = (char *) reader.content + reader.cursor;
             int32_t position = readFlat32Integer(reader);
@@ -84,8 +84,10 @@ void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
 		} else {
           // Position from globalProperties
           int prop_ind = (size * -1) - 1;
-          
-          PyObject * name_type = PyDict_GetItem(listener.props, PyInt_FromLong(prop_ind));
+
+          PyObject* pind = PyInt_FromLong(prop_ind);
+          PyObject * name_type = PyDict_GetItem(listener.props, pind);
+          Py_XDECREF(pind);
           if (name_type==NULL){
             stringstream msg;
             msg << "Could not retrieve property from global properties for id " << prop_ind << endl;
@@ -230,7 +232,7 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 
 void readValueString(ContentBuffer & reader, RecordParseListener & listener) {
 	int64_t value_size = readVarint(reader);
-	if(value_size!=0){
+    if(value_size!=0){
 		reader.prepare(value_size);
 		listener.stringValue((char *) reader.content + reader.cursor, value_size);
 	}else {
@@ -242,7 +244,7 @@ void readValueLink(ContentBuffer & reader, RecordParseListener & listener) {
 	Link link;
 	link.cluster = readVarint(reader);
 	link.position = readVarint(reader);
-	if (link.cluster == -2 && link.position == -1)
+    if (link.cluster == -2 && link.position == -1)
 		listener.nullValue();
 	else
 		listener.linkValue(link);
@@ -251,7 +253,7 @@ void readValueLink(ContentBuffer & reader, RecordParseListener & listener) {
 void readValueLinkCollection(ContentBuffer & reader, RecordParseListener & listener, OType type) {
 	int size = readVarint(reader);
 	listener.startCollection(size, type);
-	while (size-- > 0) {
+    while (size-- > 0) {
 		//TODO: handle null
 		readValueLink(reader, listener);
 	}
@@ -335,7 +337,7 @@ void readValueRidbag(ContentBuffer & reader, RecordParseListener & listener) {
 		listener.startCollection(size, LINKBAG);
 		while (size-- > 0) {
 			struct Link link;
-			link.cluster = readFlat16Integer(reader);
+            link.cluster = readFlat16Integer(reader);
 			link.position = readFlat64Integer(reader);
 			listener.linkValue(link);
 		}

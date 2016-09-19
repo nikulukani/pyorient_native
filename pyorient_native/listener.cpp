@@ -19,19 +19,25 @@ void TrackerListener::startDocument(const char * name,size_t name_length) {
   OType cur_type = this->types_stack.top();
   PyObject *nw = PyDict_New(); 
   if (name_length > 0){
-    PyList_Append(cur, PyString_FromStringAndSize(name, name_length));
+    PyObject *temp = PyString_FromStringAndSize(name, name_length);
+    PyList_Append(cur, temp);
+    Py_XDECREF(temp);
   }
   else{
     if (!PyList_Size(this->obj)){
-      PyList_Append(this->obj,Py_None);
+      PyObject *temp = Py_None;
+      PyList_Append(this->obj,temp);
+      Py_XDECREF(temp);
     }
   }
   switch(cur_type){
     case EMBEDDEDMAP:
       PyDict_SetItemString(cur, this->cur_field->c_str(), nw);
+      Py_XDECREF(nw);
       break;
     default:
       PyList_Append(cur, nw);
+      Py_XDECREF(nw);
       break;
   }
   this->types_stack.push(EMBEDDEDMAP);
@@ -56,23 +62,29 @@ void TrackerListener::stringValue(const char * value,size_t value_length) {
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val);
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val);
       break;
   }
 }
 
 void TrackerListener::intValue(long value) {
+  
   PyObject* val = PyInt_FromLong(value);
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val);
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val);
       break;
   }
+  
 }
 
 void TrackerListener::longValue(long long value) {
@@ -80,26 +92,33 @@ void TrackerListener::longValue(long long value) {
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val);
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val);
       break;
   }
 }
 
 void TrackerListener::shortValue(short value) {
+  
   PyObject* val = PyInt_FromLong(value);
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val); 
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val); 
       break;
   }
+  
 }
 
 void TrackerListener::byteValue(char value) {
+  
   #if PY_MAJOR_VERSION >= 3
   PyObject* val = PyBytes_FromFormat("%c",value);
   #else
@@ -108,11 +127,14 @@ void TrackerListener::byteValue(char value) {
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val); 
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val); 
       break;
   }
+  
 }
 
 void TrackerListener::booleanValue(bool value) {
@@ -120,9 +142,11 @@ void TrackerListener::booleanValue(bool value) {
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val); 
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val); 
       break;
   }
 }
@@ -132,9 +156,11 @@ void TrackerListener::floatValue(float value) {
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val); 
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val); 
       break;
   }
 }
@@ -144,11 +170,13 @@ void TrackerListener::doubleValue(double value) {
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val); 
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val); 
       break;
-  }
+      }
 }
 
 void TrackerListener::decimalValue(int scale , const char * bytes, int bytes_length){
@@ -164,12 +192,13 @@ void TrackerListener::decimalValue(int scale , const char * bytes, int bytes_len
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val); 
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val); 
       break;
   }
-  
   }
 
 void TrackerListener::binaryValue(const char * value, int length) {
@@ -181,11 +210,13 @@ void TrackerListener::binaryValue(const char * value, int length) {
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val); 
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val); 
       break;
-  }
+      }
 }
 
 void TrackerListener::dateValue(long long value) {
@@ -195,9 +226,11 @@ void TrackerListener::dateValue(long long value) {
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val); 
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val); 
       break;
   }
 }
@@ -210,9 +243,11 @@ void TrackerListener::dateTimeValue(long long value) {
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val); 
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val); 
       break;
   }
 }
@@ -222,9 +257,11 @@ void TrackerListener::linkValue(struct Link &value) {
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
+      Py_XDECREF(val); 
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
+      Py_XDECREF(val); 
       break;
   }
 }
@@ -235,9 +272,11 @@ void TrackerListener::startCollection(int size,OType type) {
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(cur, this->cur_field->c_str(), nw);
+      Py_XDECREF(nw); 
       break;
     default:
       PyList_Append(cur,nw);
+      Py_XDECREF(nw); 
       break;
   }
   this->types_stack.push(type);
@@ -251,13 +290,16 @@ void TrackerListener::startMap(int size,OType type) {
   switch(cur_type){
     case EMBEDDEDMAP:
       PyDict_SetItemString(cur, this->cur_field->c_str(), nw);
+      Py_XDECREF(nw);
       break;
     default:
       PyList_Append(cur, nw);
+      Py_XDECREF(nw);
       break;
   }
   this->types_stack.push(EMBEDDEDMAP);
   this->obj_stack.push(nw);
+  
 }
 
 void TrackerListener::mapKey(const char *key,size_t key_size) {
@@ -270,19 +312,23 @@ void TrackerListener::ridBagTreeKey(long long fileId,long long pageIndex,long pa
 }
 
 void TrackerListener::nullValue() {
+  PyObject* val = Py_None;
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
-      PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), Py_None);
+      PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
       break;
     default:
-      PyList_Append(this->obj_stack.top(), Py_None);
+      PyObject* val = Py_None;
+      PyList_Append(this->obj_stack.top(), val);
       break;
   }
+  Py_XDECREF(val);
 }
 
 void TrackerListener::endMap(OType type) {
   this->types_stack.pop();
   this->obj_stack.pop();
+  
 }
 
 void TrackerListener::endCollection(OType type) {
@@ -301,4 +347,9 @@ TrackerListener::TrackerListener(PyObject* props) {
 }
 
 TrackerListener::~TrackerListener() {
+  while ( !this->types_stack.empty() )
+    this->types_stack.pop(); 
+  while ( !this->obj_stack.empty() ){
+    this->obj_stack.pop(); 
+  }
 }
