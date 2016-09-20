@@ -26,40 +26,50 @@ PyRecWriter::~PyRecWriter() {
 }
 
 void PyRecWriter::write_record(PyObject *pyrec){
-  PyObject *reccls = PyObject_GetAttrString(pyrec,"_class");
+  PyObject *reccls = PyObject_GetAttrString(pyrec,"_class"); // new ref
   if(reccls!=Py_None){
     this->writer->startDocument(PyString_AsString(reccls));
   }
   else{
     this->writer->startDocument("");
   }
-  PyObject* rec_data = PyObject_GetAttrString(pyrec,"oRecordData");
-  int size = PyDict_Size(rec_data);
-  PyObject *keys = PyDict_Keys(rec_data);
+  PyObject* rec_data = PyObject_GetAttrString(pyrec,"oRecordData"); // new ref
+  int size = PyDict_Size(rec_data);            
+  PyObject *keys = PyDict_Keys(rec_data);     // new ref
   PyObject *key;
   PyObject *val;
   int i;
   for(i=0;i<size;i++){
-    key = PyList_GetItem(keys, i);
-    val = PyDict_GetItem(rec_data, key);
+    key = PyList_GetItem(keys, i);          // Borrowed reference
+    val = PyDict_GetItem(rec_data, key);    // Borrowed reference
     if(!PyString_Check(key)){
-      key = PyObject_Str(key);
+      key = PyObject_Str(key);              // new ref
+      this->writer->startField(PyString_AsString(key));
+      Py_XDECREF(key);
     }
-    this->writer->startField(PyString_AsString(key));
+    else{
+      this->writer->startField(PyString_AsString(key));
+    }
     write_value(val);
     this->writer->endField(PyString_AsString(key));
   }
   this->writer->endDocument();
+  Py_XDECREF(reccls);
+  Py_XDECREF(rec_data);
+  Py_XDECREF(keys);
 }
 
 void PyRecWriter::write_link(PyObject *pylink){
   Link link;
-  char* cluster = PyString_AsString(PyObject_GetAttrString(pylink,"clusterID"));
-  char* position = PyString_AsString(PyObject_GetAttrString(pylink,
-                                                           "recordPosition"));
+  PyObject *temp = PyObject_GetAttrString(pylink,"clusterID");
+  char* cluster = PyString_AsString(temp);
+  PyObject *temp1 = PyObject_GetAttrString(pylink,"recordPosition");
+  char* position = PyString_AsString(temp1);
   link.cluster = atol(cluster);
   link.position = atoll(position);
   this->writer->linkValue(link);
+  Py_XDECREF(temp);
+  Py_XDECREF(temp1);
 }
 
 void PyRecWriter::write_list(PyObject* pylist){
@@ -72,41 +82,46 @@ void PyRecWriter::write_list(PyObject* pylist){
   }
   // See if it is a link list (list of links)
   
-  PyObject *val0=PyList_GetItem(pylist, 0);
-  char* cls = PyString_AsString(PyObject_GetAttrString(PyObject_GetAttrString
-                                           (val0,"__class__"),"__name__"));
-  if(strcmp(cls,"OrientRecordLink")==0){
+  PyObject *val0=PyList_GetItem(pylist, 0);   // borrowed ref
+  // new refs
+  PyObject *temp = PyObject_GetAttrString(val0,"__class__");
+  PyObject *temp1 = PyObject_GetAttrString(temp,"__name__");
+  char* cls = PyString_AsString(temp1);
+  if(strcmp(cls,"OrientRecordLink")==0)
     type = LINKLIST;
-    this->writer->startCollection(size, type);
-  }
-  else{
-    this->writer->startCollection(size, type);
-  }
+  this->writer->startCollection(size, type);
   int i;
   for(i=0;i<size;i++){
-    write_value(PyList_GetItem(pylist, i));
+    write_value(PyList_GetItem(pylist, i));   // borrowed ref
   }
   this->writer->endCollection(type);
+  Py_XDECREF(temp);
+  Py_XDECREF(temp1);
 }
 
 void PyRecWriter::write_dict(PyObject* pydict){
   int size = PyDict_Size(pydict);
   OType type = EMBEDDEDMAP;
   this->writer->startMap(size, type);
-  PyObject *keys = PyDict_Keys(pydict);
+  PyObject *keys = PyDict_Keys(pydict);   // new ref
   PyObject *key;
   PyObject *val;
   int i;
   for(i=0;i<size;i++){
-    key = PyList_GetItem(keys, i);
-    val = PyDict_GetItem(pydict, key);
+    key = PyList_GetItem(keys, i);        // borrowed ref
+    val = PyDict_GetItem(pydict, key);    // borrowed ref
     if(!PyString_Check(key)){
-      key = PyObject_Str(key);
+      key = PyObject_Str(key);            // new ref
+      this->writer->mapKey(PyString_AsString(key));
+      Py_XDECREF(key);
     }
-    this->writer->mapKey(PyString_AsString(key));
+    else{
+      this->writer->mapKey(PyString_AsString(key));
+    }
     write_value(val);
   }
   this->writer->endMap(type);
+  Py_XDECREF(keys);
 }
 
 void PyRecWriter::write_int(PyObject* pyval){
@@ -115,10 +130,13 @@ void PyRecWriter::write_int(PyObject* pyval){
     //       or write_long
   int val = (int) PyInt_AsLong(pyval);
   if (val == -1 && PyErr_Occurred()!=NULL){
-    char *cls = PyString_AsString(PyObject_GetAttrString(PyObject_GetAttrString
-                                               (pyval,"__class__"),"__name__"));  
+    PyObject *temp = PyObject_GetAttrString(pyval,"__class__");
+    PyObject *temp1 = PyObject_GetAttrString(temp,"__name__");
+    char* cls = PyString_AsString(temp1);
     cout << "Error while converting to int from python object of class" <<
       cls << endl << flush;
+    Py_XDECREF(temp);
+    Py_XDECREF(temp1);
     return;
   }
   this->writer->intValue(val);
@@ -127,10 +145,13 @@ void PyRecWriter::write_int(PyObject* pyval){
 void PyRecWriter::write_long(PyObject* pyval){
   long val = PyLong_AsLong(pyval);
   if (val == -1 && PyErr_Occurred()!=NULL){
-    char *cls = PyString_AsString(PyObject_GetAttrString(PyObject_GetAttrString
-                                            (pyval,"__class__"),"__name__"));
+    PyObject *temp = PyObject_GetAttrString(pyval,"__class__");
+    PyObject *temp1 = PyObject_GetAttrString(temp,"__name__");
+    char* cls = PyString_AsString(temp1);
     cout << "Error while converting to long from python object of class" <<
       cls << endl << flush;
+    Py_XDECREF(temp);
+    Py_XDECREF(temp1);
     return;
   }
   this->writer->longValue(val);
@@ -139,19 +160,23 @@ void PyRecWriter::write_long(PyObject* pyval){
 void PyRecWriter::write_float(PyObject* pyval){
   double val = PyFloat_AsDouble(pyval);
   if (val == -1.0 && PyErr_Occurred()!=NULL){
-    char *cls = PyString_AsString(PyObject_GetAttrString(PyObject_GetAttrString
-                                            (pyval,"__class__"),"__name__"));
-    cout << "Error while converting to double from python object of class" <<
+    PyObject *temp = PyObject_GetAttrString(pyval,"__class__");
+    PyObject *temp1 = PyObject_GetAttrString(temp,"__name__");
+    char* cls = PyString_AsString(temp1);
+    cout << "Error while converting to float from python object of class" <<
       cls << endl << flush;
+    Py_XDECREF(temp);
+    Py_XDECREF(temp1);
     return;
   }
   this->writer->doubleValue(val);
 }
 
 void PyRecWriter::write_binary(PyObject* pyval){
-  PyObject* obj = PyByteArray_FromObject(pyval);
+  PyObject* obj = PyByteArray_FromObject(pyval); // new ref
   this->writer->binaryValue((const char *)PyByteArray_AsString(obj),
                              (int) PyByteArray_Size(obj));
+  Py_XDECREF(obj);
 }
 
 void PyRecWriter::write_date(PyObject* pyval){
@@ -186,8 +211,9 @@ void PyRecWriter::write_ridbagtreekey(){
 }
 
 void PyRecWriter::write_value(PyObject *pyval){
-  char *cls = PyString_AsString(PyObject_GetAttrString(PyObject_GetAttrString
-                                            (pyval,"__class__"),"__name__"));
+  PyObject *temp = PyObject_GetAttrString(pyval,"__class__");
+  PyObject *temp1 = PyObject_GetAttrString(temp,"__name__");
+  char* cls = PyString_AsString(temp1);
   if(PyString_Check(pyval)){
     this->writer->stringValue(PyString_AsString(pyval));
   }
@@ -227,6 +253,9 @@ void PyRecWriter::write_value(PyObject *pyval){
   else{
     write_binary(pyval);
   }
+  Py_XDECREF(temp);
+  Py_XDECREF(temp1);
+  
 }
 
 
