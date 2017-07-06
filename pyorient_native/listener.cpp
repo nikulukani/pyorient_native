@@ -3,9 +3,11 @@
 #include "listener.h"
 #include <iostream>
 #include <stack>
+#include "stdio.h"
 #include "time.h"
 #include "math.h"
 #include "datetime.h"
+
 using namespace Orient;
 using namespace std;
 
@@ -13,6 +15,8 @@ using namespace std;
     #define PyInt_FromLong PyLong_FromLong
     #define PyString_FromStringAndSize PyUnicode_FromStringAndSize
 #endif
+
+PyObject* module = PyImport_ImportModule("pyorient.otypes");
 
 void TrackerListener::startDocument(const char * name,size_t name_length) {
   PyObject *cur = this->obj_stack.top();
@@ -249,11 +253,15 @@ void TrackerListener::dateTimeValue(long long value) {
 }
 
 void TrackerListener::linkValue(struct Link &value) {
-  PyObject* val = Py_BuildValue("(slL)", "OrientRecordLink",value.cluster, value.position);
+  char recordLink[32];
+  sprintf(recordLink, "%ld:%lld", value.cluster, value.position);
+
+  PyObject *val = PyObject_CallMethod(module, "OrientRecordLink", "(s)",recordLink);
+
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
-      Py_XDECREF(val); 
+      Py_XDECREF(val);
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
@@ -343,6 +351,7 @@ TrackerListener::~TrackerListener() {
   while ( !this->types_stack.empty() )
     this->types_stack.pop(); 
   while ( !this->obj_stack.empty() ){
-    this->obj_stack.pop(); 
+    this->obj_stack.pop();
   }
+  Py_XDECREF(module);
 }
