@@ -7,6 +7,35 @@
 #include "time.h"
 #include "math.h"
 #include "datetime.h"
+#include "string.h"
+
+/* From https://stackoverflow.com/questions/43088062/version-comparison-in-c-using-strtok */
+int ver_comp(char *v1, char *v2)
+{
+  int res = 0;
+  char *next_1 = v1;
+  char *next_2 = v2;
+
+  while (*next_1 != '\0' && *next_2 != '\0') {
+    long x1 = strtol(v1, &next_1, 10);
+    long x2 = strtol(v2, &next_2, 10);
+
+    res = x1 - x2;
+    if (res) {
+      break;
+    }
+
+    if (*next_1 == '\0' || *next_2 == '\0') {
+      res = *next_1 - *next_2;
+      break;
+    }
+
+    v1 = next_1 + 1;
+    v2 = next_2 + 1;
+  }
+
+  return res;
+}
 
 using namespace Orient;
 using namespace std;
@@ -252,21 +281,24 @@ void TrackerListener::dateTimeValue(long long value) {
 }
 
 void TrackerListener::linkValue(struct Link &value) {
-  char recordLink[32];
-  sprintf(recordLink, "%ld:%lld", value.cluster, value.position);
-  PyObject* module = PyImport_ImportModule("pyorient.otypes");
-
-  PyObject *val = PyObject_CallMethod(module, "OrientRecordLink", "(s)",recordLink);
+  PyObject *val;
+  if(this->legacy_link){
+    val = Py_BuildValue("(slL)", "OrientRecordLink",value.cluster, value.position);
+  }
+  else{
+    char recordLink[32];
+    sprintf(recordLink, "%ld:%lld", value.cluster, value.position);
+    PyObject* module = PyImport_ImportModule("pyorient.otypes");
+    val = PyObject_CallMethod(module, "OrientRecordLink", "(s)",recordLink);
+  }
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
       Py_XDECREF(val);
-      Py_XDECREF(module);
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
       Py_XDECREF(val); 
-      Py_XDECREF(module);
       break;
   }
 }
@@ -345,6 +377,19 @@ TrackerListener::TrackerListener(PyObject* props) {
   this->types_stack.push(EMBEDDEDLIST);
   this->obj_stack.push(this->obj);
   this->props = props;
+
+  /* If pyorient version is <= 1.5.5, set legacy_link and
+     return links as tuples of form "OrientRecordLink, <clusterId>, <position>)
+     else return instances of OrientRecordLink */
+  PyObject *pyorient_constants = PyImport_ImportModule("pyorient.constants");
+  PyObject *version_pystring = PyObject_GetAttrString(pyorient_constants, "VERSION");
+  char *version = PyString_AsString(version_pystring);
+  Py_XDECREF(version_pystring);
+  if(ver_comp(version, "1.5.5") > 0)
+    this->legacy_link = false;
+  else
+    this->legacy_link = true;
+
   PyDateTime_IMPORT;
 }
 

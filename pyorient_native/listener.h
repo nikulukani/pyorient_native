@@ -13,7 +13,7 @@ class TrackerListener: public RecordParseListener {
   string *cur_field;
   stack<OType> types_stack;
   stack<PyObject*> obj_stack;
-
+  bool legacy_link;
   
   virtual void startDocument(const char * name,size_t name_length) ;
   virtual void endDocument() ;
