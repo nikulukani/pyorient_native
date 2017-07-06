@@ -13,11 +13,12 @@ pyorient_native = Extension("pyorient_native", sources=["pyorient_native/orientc
                     language="c++", libraries=["stdc++"])
 setup(
     name = "pyorient_native",
-    version="1.1.3",
+    version="1.2.2",
     description="OrientDB Binary Serialization package for python",
     author="Nikul Ukani",
     author_email="nhu2001@columbia.edu",
     ext_modules = [pyorient_native],
     packages=find_packages(),
     url="https://github.com/nikulukani/pyorient_native",
+    download_url="https://github.com/nikulukani/pyorient_native/archive/1.2.tar.gz" 
     )

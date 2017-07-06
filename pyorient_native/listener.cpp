@@ -16,7 +16,6 @@ using namespace std;
     #define PyString_FromStringAndSize PyUnicode_FromStringAndSize
 #endif
 
-PyObject* module = PyImport_ImportModule("pyorient.otypes");
 
 void TrackerListener::startDocument(const char * name,size_t name_length) {
   PyObject *cur = this->obj_stack.top();
@@ -255,17 +254,19 @@ void TrackerListener::dateTimeValue(long long value) {
 void TrackerListener::linkValue(struct Link &value) {
   char recordLink[32];
   sprintf(recordLink, "%ld:%lld", value.cluster, value.position);
+  PyObject* module = PyImport_ImportModule("pyorient.otypes");
 
   PyObject *val = PyObject_CallMethod(module, "OrientRecordLink", "(s)",recordLink);
-
   switch(this->types_stack.top()){
     case EMBEDDEDMAP:
       PyDict_SetItemString(this->obj_stack.top(), this->cur_field->c_str(), val);
       Py_XDECREF(val);
+      Py_XDECREF(module);
       break;
     default:
       PyList_Append(this->obj_stack.top(), val);
       Py_XDECREF(val); 
+      Py_XDECREF(module);
       break;
   }
 }
@@ -353,5 +354,4 @@ TrackerListener::~TrackerListener() {
   while ( !this->obj_stack.empty() ){
     this->obj_stack.pop();
   }
-  Py_XDECREF(module);
 }
