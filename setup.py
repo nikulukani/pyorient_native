@@ -20,5 +20,5 @@ setup(
     ext_modules = [pyorient_native],
     packages=find_packages(),
     url="https://github.com/nikulukani/pyorient_native",
-    download_url="https://github.com/nikulukani/pyorient_native/archive/1.2.tar.gz" 
+    download_url="https://github.com/nikulukani/pyorient_native/archive/1.2.2.tar.gz" 
     )
