@@ -7,6 +7,10 @@
 #include "datetime.h"
 #include <iostream>
 
+#if defined(_WIN32) || defined(WIN32)
+    #define timegm _mkgmtime
+#endif
+
 using namespace Orient;
 using namespace std;
 
