@@ -7,13 +7,29 @@
 #include "datetime.h"
 #include <iostream>
 
-#if defined(_WIN32) || defined(WIN32)
-    #define timegm _mkgmtime
-#endif
-
 using namespace Orient;
 using namespace std;
 
+time_t
+portable_timegm(struct tm *tm)
+{
+  time_t ret;
+  char *tz;
+
+  tz = getenv("TZ");
+  if (tz)
+    tz = strdup(tz);
+  setenv("TZ", "", 1);
+  tzset();
+  ret = mktime(tm);
+  if (tz) {
+    setenv("TZ", tz, 1);
+    free(tz);
+  } else
+    unsetenv("TZ");
+  tzset();
+  return ret;
+}
 
 const unsigned char* PyRecWriter::serialize(PyObject* pyrec, int *size){
   write_record(pyrec);
@@ -188,7 +204,7 @@ void PyRecWriter::write_date(PyObject* pyval){
   t.tm_year = PyDateTime_GET_YEAR(pyval)-1900;
   t.tm_mon = PyDateTime_GET_MONTH(pyval)-1;
   t.tm_mday = PyDateTime_GET_DAY(pyval);
-  long long val = static_cast<long long>(timegm(&t));
+  long long val = static_cast<long long>(portable_timegm(&t));
   this->writer->dateValue(val*1000);
 }
 
