@@ -184,7 +184,7 @@ void PyRecWriter::write_date(PyObject* pyval){
   t.tm_year = PyDateTime_GET_YEAR(pyval)-1900;
   t.tm_mon = PyDateTime_GET_MONTH(pyval)-1;
   t.tm_mday = PyDateTime_GET_DAY(pyval);
-  long long val = static_cast<long long>(mktime(&t));
+  long long val = static_cast<long long>(timegm(&t));
   this->writer->dateValue(val*1000);
 }
 
