@@ -7,6 +7,7 @@
 
 #ifndef SRC_ORIENTC_READER_H_
 #define SRC_ORIENTC_READER_H_
+#include <iostream>
 #include "Python.h"
 #include <string>
 
