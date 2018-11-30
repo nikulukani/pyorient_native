@@ -11,12 +11,19 @@ char* PyString_AsString(PyObject* obj){
   if(obj==NULL)
     return "";
   if (PyUnicode_Check(obj)) {
+    char* rv;
     PyObject * byte_obj = PyUnicode_AsEncodedString(obj, "ASCII", "strict");
-    return PyBytes_AsString(byte_obj);
+    rv = PyBytes_AsString(byte_obj);
+    Py_XDECREF(byte_obj);
+    return rv;
   } else if (PyBytes_Check(obj)) {
     return PyBytes_AsString(obj);
   } else {
-    return PyString_AsString(PyObject_Str(obj));
+    char* rv;
+    PyObject* byte_obj = PyObject_Str(obj);
+    rv = PyString_AsString(byte_obj);
+    Py_XDECREF(byte_obj);
+    return rv;
   }
 }
 #endif

@@ -399,4 +399,5 @@ TrackerListener::~TrackerListener() {
   while ( !this->obj_stack.empty() ){
     this->obj_stack.pop();
   }
+  delete this->cur_field;
 }
