@@ -8,16 +8,17 @@
 #include "math.h"
 #include "datetime.h"
 #include "string.h"
+#include "version_compare.h
 
-/* From https://stackoverflow.com/questions/43088062/version-comparison-in-c-using-strtok */
-//int ver_comp(char *v1, char *v2)
-int ver_comp(string v1, string v2) {
+int ver_comp(const char *v1, const char *v2) {
     /*
-    v1>v2 : return 1,
-    v1==v2:return 0
-    v1<v2: return -1.
+      v1>v2 : return 1,
+      v1==v2:return 0
+      v1<v2: return -1.
     */
-    return (v1 == v2) ? 0 : (v1 > v2) ? 1 : -1;
+    lhs Version(v1);
+    rhs Version(v2);
+    return (lhs == rhs) ? 0 : (lhs > rhs) ? 1 : -1;
 }
 
 using namespace Orient;
@@ -368,7 +369,7 @@ TrackerListener::TrackerListener(PyObject* props) {
   PyObject *version_pystring = PyObject_GetAttrString(pyorient_constants, "VERSION");
   char *version = PyString_AsString(version_pystring);
   Py_XDECREF(version_pystring);
-  if(ver_comp(version, (string)("1.5.5") > 0)
+  if((Version)(version) > (Version)("1.5.5"))
     this->legacy_link = false;
   else
     this->legacy_link = true;
