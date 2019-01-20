@@ -10,31 +10,14 @@
 #include "string.h"
 
 /* From https://stackoverflow.com/questions/43088062/version-comparison-in-c-using-strtok */
-int ver_comp(char *v1, char *v2)
-{
-  int res = 0;
-  char *next_1 = v1;
-  char *next_2 = v2;
-
-  while (*next_1 != '\0' && *next_2 != '\0') {
-    long x1 = strtol(v1, &next_1, 10);
-    long x2 = strtol(v2, &next_2, 10);
-
-    res = x1 - x2;
-    if (res) {
-      break;
-    }
-
-    if (*next_1 == '\0' || *next_2 == '\0') {
-      res = *next_1 - *next_2;
-      break;
-    }
-
-    v1 = next_1 + 1;
-    v2 = next_2 + 1;
-  }
-
-  return res;
+//int ver_comp(char *v1, char *v2)
+int ver_comp(string v1, string v2) {
+    /*
+    v1>v2 : return 1,
+    v1==v2:return 0
+    v1<v2: return -1.
+    */
+    return (v1 == v2) ? 0 : (v1 > v2) ? 1 : -1;
 }
 
 using namespace Orient;
@@ -385,7 +368,7 @@ TrackerListener::TrackerListener(PyObject* props) {
   PyObject *version_pystring = PyObject_GetAttrString(pyorient_constants, "VERSION");
   char *version = PyString_AsString(version_pystring);
   Py_XDECREF(version_pystring);
-  if(ver_comp(version, "1.5.5") > 0)
+  if(ver_comp(version, (string)("1.5.5") > 0)
     this->legacy_link = false;
   else
     this->legacy_link = true;
