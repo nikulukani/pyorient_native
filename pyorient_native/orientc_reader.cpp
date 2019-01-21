@@ -9,7 +9,7 @@
 #if PY_MAJOR_VERSION >= 3
 char* PyString_AsString(PyObject* obj){
   if(obj==NULL)
-    return "";
+    return (char *)("");
   if (PyUnicode_Check(obj)) {
     char* rv;
     PyObject * byte_obj = PyUnicode_AsEncodedString(obj, "ASCII", "strict");
