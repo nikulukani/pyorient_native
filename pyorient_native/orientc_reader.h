@@ -14,7 +14,7 @@
 #if PY_MAJOR_VERSION >= 3
 #define PyInt_FromLong PyLong_FromLong
 #define PyInt_AsLong PyLong_AsLong
-#define PyInt_Check PyLong_Check
+#define PyInt_Check(val) PyLong_Check(val) && ((int) PyInt_AsLong(val)) == ((long) PyInt_AsLong(val))
 #define PyString_Check PyUnicode_Check
 char* PyString_AsString(PyObject* obj);
 #endif

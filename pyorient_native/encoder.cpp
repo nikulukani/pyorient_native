@@ -125,9 +125,6 @@ void PyRecWriter::write_dict(PyObject* pydict){
 }
 
 void PyRecWriter::write_int(PyObject* pyval){
-  // TODO: Python >= 2.7 does not distinguish bet int and long by default
-    //       BitLength should be used to figure out whether call write_int
-    //       or write_long
   int val = (int) PyInt_AsLong(pyval);
   if (val == -1 && PyErr_Occurred()!=NULL){
     PyObject *temp = PyObject_GetAttrString(pyval,"__class__");
